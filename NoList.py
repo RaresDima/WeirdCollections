@@ -33,6 +33,15 @@ class MyList:
                         index = self.__validateindex__(index)
                         setattr(self, f'__item__{index}', value)
 
+        def __delitem__(self, index):
+                if type(index) is slice:
+                        self.__delslice__(index)
+                else:
+                        index = self.__validateindex__(index)
+                        for i in range(index+1, self.__len):
+                                setattr(self, f'__item__{i-1}', getattr(self, f'__item__{i}'))
+                        self.__len -= 1
+
         def __getslice__(self, slc):
                 res = MyList()
                 for index in range(*slc.indices(self.__len)):
@@ -52,6 +61,11 @@ class MyList:
                 for index in range(*slc.indices(self.__len)):
                         self.__setitem__(index, next(values))
 
+        def __delslice__(self, slc: slice):
+                for i in reversed(range(*slc.indices(self.__len))):
+                        self.__delitem__(i)
+                self.__len -= len(range(*slc.indices(self.__len)))
+
         def append(self, value):
                 setattr(self, f'__item__{self.__len}', value)
                 self.__len += 1
@@ -66,13 +80,6 @@ class MyList:
         def __add__(self, other):
                 res = MyList(self)
                 res.extend(other)
-                return res
-
-        def __str__(self):
-                res = 'MyList['
-                for i in range(self.__len - 1):
-                        res = f'{res}{repr(self.__getitem__(i))}, '
-                res = f'{res}{repr(getattr(self, f"__item__{self.__len - 1}"))}]'
                 return res
 
         class __MyListIter:
@@ -106,6 +113,13 @@ class MyList:
                                 return index
                 else:
                         return -1
+
+        def __str__(self):
+                res = 'MyList['
+                for i in range(self.__len - 1):
+                        res = f'{res}{repr(self.__getitem__(i))}, '
+                res = f'{res}{repr(getattr(self, f"__item__{self.__len - 1}"))}]'
+                return res
 
 
 l = MyList([1, 2, 3])
@@ -142,33 +156,42 @@ print('l.find(3.5)     = ', l.find(3.5))
 print('l.find(35)      = ', l.find(35))
 
 l[2:5] = [0, 0, 0]
-print('\nexecuted: l[2:5] = [0, 0, 0]\n\n'
-      'l               = ', l)
+print(f'\nEXECUTED: l[2:5] = [0, 0, 0]\n\n'
+      f'l = {l}')
 
 l[2:7:2] = MyList([200, 300, 400])
-print('\nEXECUTED: l[2:7:2] = MyList([200, 300, 400])\n\n'
-      'l               = ', l)
+print(f'\nEXECUTED: l[2:7:2] = MyList([200, 300, 400])\n\n'
+      f'l = {l}')
 
 # l[2:5] = [1, 1]
 # l[2:5] = [1, 1, 1, 1, 1, 1, 1]
 
+del l[3]
+print(f'\nEXECUTED: del l[3]\n\n'
+      f'l = {l}')
+
+del l[3:8:2]
+print(f'\nEXECUTED: del l[3:8:2]\n\n'
+      f'l = {l}')
+
 l.extend([-1, -2])
-print('\nEXECUTED: l.extend([-1, -2])\n\n'
-      'l               = ', l)
+print(f'\nEXECUTED: l.extend([-1, -2])\n\n'
+      f'l = {l}')
 
 l.extend(MyList([-3, -4]))
-print('\nEXECUTED: l.extend(MyList([-3, -4]))\n\n'
-      'l               = ', l)
+print(f'\nEXECUTED: l.extend(MyList([-3, -4]))\n\n'
+      f'l = {l}')
 
 # l.extend(5)
 
 l = l + MyList([0.1, 0.2, 0.3]) + [-0.1, -0.2, -0.3]
-print('\nEXECUTED: l = l + MyList([0.1, 0.2, 0.3]) + [-0.1, -0.2, -0.3]\n'
-      'l               = ', l)
+print(f'\nEXECUTED: l = l + MyList([0.1, 0.2, 0.3]) + [-0.1, -0.2, -0.3]\n\n'
+      f'l = {l}')
 
 # l = l + MyList([0.1, 0.2, 0.3]) + 25
 
 
-print('\nElements of l:')
+print(f'\nElements of l:')
 for element in l:
-        print(' ', element)
+        print(f' * {element}')
+
